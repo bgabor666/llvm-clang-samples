@@ -40,7 +40,7 @@
 # directory of the binary download (the directory that has bin/, lib/, include/
 # and other directories inside).
 # See the build_vs_released_binary.sh script for an example.
-LLVM_SRC_PATH := $$HOME/llvm/llvm_svn_rw
+LLVM_SRC_PATH := /home/bgabor/work/ARM/switch-optimization/llvm
 
 # LLVM_BUILD_PATH is the directory in which you built LLVM - where you ran
 # configure or cmake.
@@ -49,7 +49,7 @@ LLVM_SRC_PATH := $$HOME/llvm/llvm_svn_rw
 # process. It should contain the tools like opt, llc and clang. The default
 # reflects a release build with CMake and Ninja. binary build of LLVM, point it
 # to the bin/ directory.
-LLVM_BUILD_PATH := $$HOME/llvm/build/svn-ninja-release
+LLVM_BUILD_PATH := /home/bgabor/work/ARM/switch-optimization/release-build
 LLVM_BIN_PATH 	:= $(LLVM_BUILD_PATH)/bin
 
 $(info -----------------------------------------------)
@@ -129,6 +129,7 @@ all: make_builddir \
 	$(BUILDDIR)/rewritersample \
 	$(BUILDDIR)/matchers_rewriter \
 	$(BUILDDIR)/tooling_sample \
+	$(BUILDDIR)/function_type_extractor \
 	$(BUILDDIR)/plugin_print_funcnames.so
 
 .PHONY: test
@@ -174,6 +175,10 @@ $(BUILDDIR)/rewritersample: $(SRC_CLANG_DIR)/rewritersample.cpp
 		$(CLANG_LIBS) $(LLVM_LDFLAGS) -o $@
 
 $(BUILDDIR)/tooling_sample: $(SRC_CLANG_DIR)/tooling_sample.cpp
+	$(CXX) $(CXXFLAGS) $(LLVM_CXXFLAGS) $(CLANG_INCLUDES) $^ \
+		$(CLANG_LIBS) $(LLVM_LDFLAGS) -o $@
+
+$(BUILDDIR)/function_type_extractor: $(SRC_CLANG_DIR)/function_type_extractor.cpp
 	$(CXX) $(CXXFLAGS) $(LLVM_CXXFLAGS) $(CLANG_INCLUDES) $^ \
 		$(CLANG_LIBS) $(LLVM_LDFLAGS) -o $@
 
