@@ -34,6 +34,7 @@ class MyASTVisitor : public RecursiveASTVisitor<MyASTVisitor> {
 public:
   MyASTVisitor(Rewriter &R) : TheRewriter(R) {}
 
+/*
   bool VisitStmt(Stmt *s) {
     // Only care about If statements.
     if (isa<IfStmt>(s)) {
@@ -51,30 +52,48 @@ public:
 
     return true;
   }
+*/
 
   bool VisitFunctionDecl(FunctionDecl *f) {
     // Only function definitions (with bodies), not declarations.
     //Stmt *FuncBody = f->getBody();
 
     // Type name as string
-    //QualType QT = f->getReturnType();
-    //std::string TypeStr = QT.getAsString();
+    QualType QT = f->getReturnType();
+    std::string TypeStr = QT.getCanonicalType().getAsString();
 
     // Function name
-    //DeclarationName DeclName = f->getNameInfo().getName();
-    //std::string FuncName = DeclName.getAsString();
+    DeclarationName DeclName = f->getNameInfo().getName();
+    std::string FuncName = DeclName.getAsString();
 
     // Add comment before
     std::stringstream SSBefore;
-    SSBefore << "// " << f->getType().getCanonicalType().getAsString() <<  "\n";
+    //SSBefore << "// " << f->getType().getCanonicalType().getAsString() <<  "\n";
+    SSBefore << "/* " << "Generated from: " <<  "\n";
     SourceLocation ST = f->getSourceRange().getBegin();
     TheRewriter.InsertText(ST, SSBefore.str(), true, true);
 
     // And after
-    //std::stringstream SSAfter;
-    //SSAfter << "\n// End function " << FuncName;
-    //ST = FuncBody->getLocEnd().getLocWithOffset(1);
-    //TheRewriter.InsertText(ST, SSAfter.str(), true, true);
+    std::stringstream SSAfter;
+    SSAfter << ";\n*/\n" << TypeStr << " " << FuncName;
+
+    auto Parameters = f->parameters();
+    for (auto ParamIterator = Parameters.begin(); ParamIterator != Parameters.end(); ++ParamIterator) {
+      if (ParamIterator == Parameters.begin()) {
+        SSAfter << "(";
+      } else {
+        SSAfter << ", ";
+      }
+
+      SSAfter << (*ParamIterator)->getType().getCanonicalType().getAsString();
+
+      if (std::next(ParamIterator) == Parameters.end()) {
+        SSAfter << ")";
+      }
+
+    }
+    ST = f->getLocEnd().getLocWithOffset(1);
+    TheRewriter.InsertText(ST, SSAfter.str(), true, true);
 
     return true;
   }
@@ -95,7 +114,7 @@ public:
     for (DeclGroupRef::iterator b = DR.begin(), e = DR.end(); b != e; ++b) {
       // Traverse the declaration using our AST visitor.
       Visitor.TraverseDecl(*b);
-      (*b)->dump();
+      //(*b)->dump();
     }
     return true;
   }
